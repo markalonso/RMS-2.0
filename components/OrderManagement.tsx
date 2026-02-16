@@ -56,6 +56,7 @@ export default function OrderManagement({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [debugLogs, setDebugLogs] = useState<string[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Helper function to log operations
   const logOperation = (operation: string, details: any) => {
@@ -181,15 +182,29 @@ export default function OrderManagement({
       return
     }
 
+    // Prevent double submission
+    if (isSubmitting) {
+      logOperation('createManualOrder.blocked', { reason: 'already submitting' })
+      return
+    }
+
     try {
+      setIsSubmitting(true)
       setError(null)
+      
+      // Generate unique request ID for idempotency
+      const requestId = crypto.randomUUID()
+      
       logOperation('createManualOrder.start', { 
         session_id: session.id,
         business_day_id: session.business_day_id,
-        item_count: Object.keys(selectedItems).length 
+        item_count: Object.keys(selectedItems).length,
+        request_id: requestId
       })
 
       // Create order
+      // Note: For manual POS orders, notes field is not user-editable, so it's safe to use for request ID.
+      // If in the future notes become user-editable, this should be changed to append or use a dedicated field.
       const orderPayload = {
         session_id: session.id,
         business_day_id: session.business_day_id,
@@ -197,7 +212,8 @@ export default function OrderManagement({
         status: 'accepted',
         created_by: currentUser.id,
         accepted_by: currentUser.id,
-        accepted_at: new Date().toISOString()
+        accepted_at: new Date().toISOString(),
+        notes: `client_req:${requestId}`
       }
 
       logOperation('createManualOrder.insertOrder', orderPayload)
@@ -265,6 +281,8 @@ export default function OrderManagement({
     } catch (err: any) {
       handleError('createManualOrder', err)
       alert(`Error creating order: ${err.message || 'Unknown error'}`)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -797,10 +815,10 @@ export default function OrderManagement({
               <div className="flex gap-2">
                 <button
                   onClick={createManualOrder}
-                  disabled={Object.keys(selectedItems).length === 0}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
+                  disabled={Object.keys(selectedItems).length === 0 || isSubmitting}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {translate('common.add', language)}
+                  {isSubmitting ? translate('common.loading', language) || 'Submitting...' : translate('common.add', language)}
                 </button>
                 <button
                   onClick={() => {
