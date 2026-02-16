@@ -12,6 +12,7 @@ export default function ReceiptPage({ params }: PageProps) {
   const { billId } = use(params)
   const [bill, setBill] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadBill()
@@ -65,14 +66,15 @@ export default function ReceiptPage({ params }: PageProps) {
           hint: error.hint,
           code: error.code
         })
-        throw error
+        setError(`Failed to load receipt: ${error.message || 'Unknown error'}${error.code ? ` (${error.code})` : ''}`)
+        return
       }
 
       console.log('[Receipt] Bill loaded successfully:', data?.bill_number)
       setBill(data)
     } catch (error: any) {
       console.error('[Receipt] Error in loadBill:', error)
-      alert(`Failed to load receipt: ${error.message || 'Unknown error'}${error.code ? ` (${error.code})` : ''}`)
+      setError(`Failed to load receipt: ${error.message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -80,6 +82,23 @@ export default function ReceiptPage({ params }: PageProps) {
 
   if (loading) {
     return <div className="p-8 text-center">Loading...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 max-w-md mx-auto">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <h2 className="font-bold text-lg mb-2">Error Loading Receipt</h2>
+          <p>{error}</p>
+          <button
+            onClick={() => window.close()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (!bill) {

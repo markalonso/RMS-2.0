@@ -220,7 +220,8 @@ export default function OrderManagement({
       const orderItems = Object.entries(selectedItems).map(([itemId, quantity]) => {
         const menuItem = menuItems.find(m => m.id === itemId)
         if (!menuItem) {
-          throw new Error(`Menu item not found: ${itemId}`)
+          console.error(`Menu item not found: ${itemId}`)
+          throw new Error(`A selected menu item is no longer available. Please refresh and try again.`)
         }
         return {
           order_id: order.id,
@@ -242,7 +243,8 @@ export default function OrderManagement({
         .insert(orderItems)
 
       if (itemsError) {
-        // Rollback: delete the order we just created
+        // Rollback: delete the order we just created since it was never valid
+        // We use soft delete (status='cancelled') to maintain audit trail
         logOperation('createManualOrder.rollback', { order_id: order.id, reason: 'order_items insert failed' })
         
         await supabase
@@ -334,7 +336,7 @@ export default function OrderManagement({
         return
       }
 
-      const deliveryAmount = session.order_type === 'delivery' ? parseFloat(deliveryFee || '0') : 0
+      const deliveryAmount = session.order_type === 'delivery' ? (parseFloat(deliveryFee) || 0) : 0
 
       const billData = {
         subtotal,
@@ -815,7 +817,7 @@ export default function OrderManagement({
         )}
 
         {/* Diagnostics Section (Dev Only) */}
-        {debugLogs.length > 0 && (
+        {process.env.NODE_ENV === 'development' && debugLogs.length > 0 && (
           <div className="mt-6 p-4 bg-gray-100 rounded border border-gray-300">
             <div className="flex justify-between items-center mb-2">
               <h4 className="font-semibold text-sm">Diagnostics (Last 10 operations)</h4>
