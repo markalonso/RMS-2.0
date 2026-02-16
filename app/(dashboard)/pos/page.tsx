@@ -252,6 +252,12 @@ export default function POSPage() {
   const openDeliverySession = async () => {
     if (!businessDay || !currentUser) return
 
+    // Validate required fields
+    if (!customerName || !customerPhone || !customerAddress) {
+      alert(translate('pos.fillRequired', language))
+      return
+    }
+
     const { data } = await supabase
       .from('sessions')
       .insert({
@@ -448,7 +454,7 @@ export default function POSPage() {
                   )}
 
                   {/* Pending Orders Badge */}
-                  {table.pendingOrdersCount! > 0 && (
+                  {(table.pendingOrdersCount ?? 0) > 0 && (
                     <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                       {table.pendingOrdersCount}
                     </div>

@@ -237,7 +237,7 @@ export default function OrderManagement({
     
     // Check discount limits
     if (currentUser.role === 'cashier' && discountPercent && parseFloat(discountPercent) > 15) {
-      alert('Cashiers can only apply up to 15% discount')
+      alert(translate('pos.maxDiscount', language))
       return
     }
 
@@ -276,6 +276,13 @@ export default function OrderManagement({
     if (!bill || !currentUser) return
 
     const paid = parseFloat(amountPaid)
+    
+    // Validate payment amount
+    if (paid < bill.total) {
+      alert(translate('pos.paymentTooLow', language))
+      return
+    }
+    
     const change = paid - bill.total
 
     // Create payment record

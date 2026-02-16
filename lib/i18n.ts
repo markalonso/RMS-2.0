@@ -387,6 +387,18 @@ export const translations: Translations = {
     en: 'No business day is open. Please open a business day to start.',
     ar: 'لا يوجد يوم عمل مفتوح. يرجى فتح يوم عمل للبدء.'
   },
+  'pos.paymentTooLow': {
+    en: 'Payment amount must be at least the bill total',
+    ar: 'يجب أن يكون مبلغ الدفع على الأقل إجمالي الفاتورة'
+  },
+  'pos.maxDiscount': {
+    en: 'Cashiers can only apply up to 15% discount',
+    ar: 'يمكن للصرافين تطبيق خصم حتى 15% فقط'
+  },
+  'pos.fillRequired': {
+    en: 'Please fill in all required fields',
+    ar: 'يرجى ملء جميع الحقول المطلوبة'
+  },
 }
 
 export const translate = (key: string, lang: Language): string => {
