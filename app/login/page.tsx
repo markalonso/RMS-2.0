@@ -43,20 +43,19 @@ export default function LoginPage() {
         // Verify profile exists
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, role, full_name, is_active, is_deleted')
           .eq('id', data.user.id)
           .eq('is_active', true)
-          .is('deleted_at', null)
-          .maybeSingle()
+          .eq('is_deleted', false)
+          .single()
 
         if (profileError) {
-          setError('Error loading profile: ' + profileError.message)
-          setLoading(false)
-          return
-        }
-
-        if (!profile) {
-          setError('Profile not found. Please create a profile row in Supabase with your user ID.')
+          // Check if it's a "not found" error (PGRST116)
+          if (profileError.code === 'PGRST116') {
+            setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
+          } else {
+            setError('Error loading profile: ' + profileError.message)
+          }
           await supabase.auth.signOut()
           setLoading(false)
           return

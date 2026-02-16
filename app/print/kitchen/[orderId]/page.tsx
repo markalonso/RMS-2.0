@@ -11,6 +11,7 @@ export default function KitchenTicketPage({ params }: PageProps) {
   const { orderId } = use(params)
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadOrder()
@@ -25,6 +26,8 @@ export default function KitchenTicketPage({ params }: PageProps) {
 
   const loadOrder = async () => {
     try {
+      console.log('[Kitchen] Loading order:', orderId)
+      
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -44,10 +47,22 @@ export default function KitchenTicketPage({ params }: PageProps) {
         .eq('id', orderId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('[Kitchen] Error loading order:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        setError(`Failed to load kitchen ticket: ${error.message || 'Unknown error'}${error.code ? ` (${error.code})` : ''}`)
+        return
+      }
+
+      console.log('[Kitchen] Order loaded successfully:', data?.order_number)
       setOrder(data)
-    } catch (error) {
-      console.error('Error loading order:', error)
+    } catch (error: any) {
+      console.error('[Kitchen] Error in loadOrder:', error)
+      setError(`Failed to load kitchen ticket: ${error.message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -55,6 +70,23 @@ export default function KitchenTicketPage({ params }: PageProps) {
 
   if (loading) {
     return <div className="p-8 text-center">Loading...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 max-w-md mx-auto">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <h2 className="font-bold text-lg mb-2">Error Loading Kitchen Ticket</h2>
+          <p>{error}</p>
+          <button
+            onClick={() => window.close()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (!order) {

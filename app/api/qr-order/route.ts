@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       .from('tables')
       .select('id, qr_enabled, is_active')
       .eq('table_number', tableNumber)
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .single()
 
     if (tableError || !table) {

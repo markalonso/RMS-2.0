@@ -143,7 +143,7 @@ function MenuManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('menu_categories')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('display_order')
     setCategories(data || [])
   }
@@ -152,7 +152,7 @@ function MenuManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('menu_items')
       .select('*, category:menu_categories(name)')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setItems(data || [])
   }
@@ -177,7 +177,7 @@ function MenuManagement({ language }: { language: any }) {
     if (confirm('Delete this category?')) {
       await supabase
         .from('menu_categories')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true })
         .eq('id', id)
       loadCategories()
     }
@@ -203,7 +203,7 @@ function MenuManagement({ language }: { language: any }) {
     if (confirm('Delete this item?')) {
       await supabase
         .from('menu_items')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true })
         .eq('id', id)
       loadItems()
     }
@@ -549,7 +549,7 @@ function ModifierManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('modifier_groups')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setModifierGroups(data || [])
   }
@@ -558,7 +558,7 @@ function ModifierManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('modifiers')
       .select('*, modifier_group:modifier_groups(name)')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setModifiers(data || [])
   }
@@ -583,7 +583,7 @@ function ModifierManagement({ language }: { language: any }) {
     if (confirm('Delete this modifier group?')) {
       await supabase
         .from('modifier_groups')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true })
         .eq('id', id)
       loadModifierGroups()
     }
@@ -609,7 +609,7 @@ function ModifierManagement({ language }: { language: any }) {
     if (confirm('Delete this modifier?')) {
       await supabase
         .from('modifiers')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true })
         .eq('id', id)
       loadModifiers()
     }
@@ -922,7 +922,7 @@ function InventoryManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('inventory_ingredients')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setIngredients(data || [])
   }
@@ -939,7 +939,7 @@ function InventoryManagement({ language }: { language: any }) {
     const { data } = await supabase
       .from('menu_items')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setMenuItems(data || [])
   }
@@ -964,7 +964,7 @@ function InventoryManagement({ language }: { language: any }) {
     if (confirm('Delete this ingredient?')) {
       await supabase
         .from('inventory_ingredients')
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true })
         .eq('id', id)
       loadIngredients()
     }
@@ -1387,7 +1387,7 @@ function PurchaseInvoiceForm({ language, onSave, onClose }: any) {
     const { data } = await supabase
       .from('inventory_ingredients')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setIngredients(data || [])
   }
@@ -1822,7 +1822,7 @@ function WasteForm({ language, onSave, onClose }: any) {
     const { data } = await supabase
       .from('inventory_ingredients')
       .select('*')
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
     setIngredients(data || [])
   }
