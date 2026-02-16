@@ -205,6 +205,188 @@ export const translations: Translations = {
     en: 'Currently Unavailable',
     ar: 'غير متوفر حالياً'
   },
+
+  // POS Features
+  'pos.tables': {
+    en: 'Tables',
+    ar: 'الطاولات'
+  },
+  'pos.openDay': {
+    en: 'Open Business Day',
+    ar: 'فتح يوم عمل'
+  },
+  'pos.closeDay': {
+    en: 'Close Business Day',
+    ar: 'إغلاق يوم عمل'
+  },
+  'pos.dayOpen': {
+    en: 'Day Open',
+    ar: 'اليوم مفتوح'
+  },
+  'pos.dayClosed': {
+    en: 'Day Closed',
+    ar: 'اليوم مغلق'
+  },
+  'pos.openingCash': {
+    en: 'Opening Cash',
+    ar: 'النقد الافتتاحي'
+  },
+  'pos.closingCash': {
+    en: 'Closing Cash',
+    ar: 'النقد الختامي'
+  },
+  'pos.dineIn': {
+    en: 'Dine-in',
+    ar: 'تناول في المطعم'
+  },
+  'pos.takeaway': {
+    en: 'Takeaway',
+    ar: 'طلب خارجي'
+  },
+  'pos.delivery': {
+    en: 'Delivery',
+    ar: 'توصيل'
+  },
+  'pos.available': {
+    en: 'Available',
+    ar: 'متاح'
+  },
+  'pos.occupied': {
+    en: 'Occupied',
+    ar: 'مشغول'
+  },
+  'pos.pendingOrders': {
+    en: 'Pending Orders',
+    ar: 'طلبات معلقة'
+  },
+  'pos.qrEnabled': {
+    en: 'QR Enabled',
+    ar: 'QR مفعّل'
+  },
+  'pos.qrDisabled': {
+    en: 'QR Disabled',
+    ar: 'QR معطل'
+  },
+  'pos.openSession': {
+    en: 'Open Session',
+    ar: 'فتح جلسة'
+  },
+  'pos.newTakeaway': {
+    en: 'New Takeaway',
+    ar: 'طلب خارجي جديد'
+  },
+  'pos.newDelivery': {
+    en: 'New Delivery',
+    ar: 'طلب توصيل جديد'
+  },
+  'pos.customerName': {
+    en: 'Customer Name',
+    ar: 'اسم العميل'
+  },
+  'pos.phone': {
+    en: 'Phone',
+    ar: 'الهاتف'
+  },
+  'pos.address': {
+    en: 'Address',
+    ar: 'العنوان'
+  },
+  'pos.deliveryFee': {
+    en: 'Delivery Fee',
+    ar: 'رسوم التوصيل'
+  },
+  'pos.guestCount': {
+    en: 'Guest Count',
+    ar: 'عدد الضيوف'
+  },
+  'pos.accept': {
+    en: 'Accept',
+    ar: 'قبول'
+  },
+  'pos.reject': {
+    en: 'Reject',
+    ar: 'رفض'
+  },
+  'pos.addItems': {
+    en: 'Add Items',
+    ar: 'إضافة عناصر'
+  },
+  'pos.discount': {
+    en: 'Discount',
+    ar: 'خصم'
+  },
+  'pos.discountPercent': {
+    en: 'Discount %',
+    ar: '% خصم'
+  },
+  'pos.discountAmount': {
+    en: 'Discount Amount',
+    ar: 'مبلغ الخصم'
+  },
+  'pos.subtotal': {
+    en: 'Subtotal',
+    ar: 'المجموع الفرعي'
+  },
+  'pos.tax': {
+    en: 'Tax',
+    ar: 'الضريبة'
+  },
+  'pos.total': {
+    en: 'Total',
+    ar: 'الإجمالي'
+  },
+  'pos.printKitchen': {
+    en: 'Print Kitchen Ticket',
+    ar: 'طباعة تذكرة المطبخ'
+  },
+  'pos.printReceipt': {
+    en: 'Print Receipt',
+    ar: 'طباعة إيصال'
+  },
+  'pos.mergeTables': {
+    en: 'Merge Tables',
+    ar: 'دمج الطاولات'
+  },
+  'pos.splitBill': {
+    en: 'Split Bill',
+    ar: 'تقسيم الفاتورة'
+  },
+  'pos.pay': {
+    en: 'Pay',
+    ar: 'دفع'
+  },
+  'pos.cash': {
+    en: 'Cash',
+    ar: 'نقداً'
+  },
+  'pos.card': {
+    en: 'Card',
+    ar: 'بطاقة'
+  },
+  'pos.bankTransfer': {
+    en: 'Bank Transfer',
+    ar: 'تحويل بنكي'
+  },
+  'pos.mobileWallet': {
+    en: 'Mobile Wallet',
+    ar: 'محفظة إلكترونية'
+  },
+  'pos.endOfDay': {
+    en: 'End of Day Report',
+    ar: 'تقرير نهاية اليوم'
+  },
+  'pos.viewOrders': {
+    en: 'View Orders',
+    ar: 'عرض الطلبات'
+  },
+  'pos.closeAndPay': {
+    en: 'Close & Pay',
+    ar: 'إغلاق ودفع'
+  },
+  'pos.noBusinessDay': {
+    en: 'No business day is open. Please open a business day to start.',
+    ar: 'لا يوجد يوم عمل مفتوح. يرجى فتح يوم عمل للبدء.'
+  },
 }
 
 export const translate = (key: string, lang: Language): string => {
