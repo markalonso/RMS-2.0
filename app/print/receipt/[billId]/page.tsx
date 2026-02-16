@@ -26,6 +26,8 @@ export default function ReceiptPage({ params }: PageProps) {
 
   const loadBill = async () => {
     try {
+      console.log('[Receipt] Loading bill:', billId)
+      
       const { data, error } = await supabase
         .from('bills')
         .select(`
@@ -56,10 +58,21 @@ export default function ReceiptPage({ params }: PageProps) {
         .eq('id', billId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('[Receipt] Error loading bill:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        throw error
+      }
+
+      console.log('[Receipt] Bill loaded successfully:', data?.bill_number)
       setBill(data)
-    } catch (error) {
-      console.error('Error loading bill:', error)
+    } catch (error: any) {
+      console.error('[Receipt] Error in loadBill:', error)
+      alert(`Failed to load receipt: ${error.message || 'Unknown error'}${error.code ? ` (${error.code})` : ''}`)
     } finally {
       setLoading(false)
     }

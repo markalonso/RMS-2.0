@@ -25,6 +25,8 @@ export default function KitchenTicketPage({ params }: PageProps) {
 
   const loadOrder = async () => {
     try {
+      console.log('[Kitchen] Loading order:', orderId)
+      
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -44,10 +46,21 @@ export default function KitchenTicketPage({ params }: PageProps) {
         .eq('id', orderId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('[Kitchen] Error loading order:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        throw error
+      }
+
+      console.log('[Kitchen] Order loaded successfully:', data?.order_number)
       setOrder(data)
-    } catch (error) {
-      console.error('Error loading order:', error)
+    } catch (error: any) {
+      console.error('[Kitchen] Error in loadOrder:', error)
+      alert(`Failed to load kitchen ticket: ${error.message || 'Unknown error'}${error.code ? ` (${error.code})` : ''}`)
     } finally {
       setLoading(false)
     }
