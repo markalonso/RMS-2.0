@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import { Cairo } from 'next/font/google'
 import { LanguageProvider } from "@/lib/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
 import "./globals.css";
-
-const cairo = Cairo({
-  subsets: ['latin', 'arabic'],
-  display: 'swap',
-  variable: '--font-cairo',
-})
 
 export const metadata: Metadata = {
   title: "Restaurant RMS",
@@ -21,8 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cairo.variable}>
-      <body className="font-sans">
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans" style={{ fontFamily: "'Cairo', system-ui, sans-serif" }}>
         <LanguageProvider>
           <div className="min-h-screen flex flex-col">
             <header className="bg-white shadow-sm border-b">
