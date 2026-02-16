@@ -15,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans" style={{ fontFamily: "'Cairo', system-ui, sans-serif" }}>
         <LanguageProvider>
           <div className="min-h-screen flex flex-col">
             <header className="bg-white shadow-sm border-b">

@@ -284,71 +284,34 @@ export default function TablePage({ params }: PageProps) {
     setLastSubmitTime(now)
 
     try {
-      // Get current business day
-      const { data: businessDay, error: bdError } = await supabase
-        .from('business_days')
-        .select('id')
-        .eq('status', 'open')
-        .order('opened_at', { ascending: false })
-        .limit(1)
-        .single()
+      // Generate a unique client request ID to prevent duplicate submissions
+      const clientRequestId = `${Date.now()}-${Math.random().toString(36).substring(2)}`
 
-      if (bdError || !businessDay) {
-        throw new Error('No open business day found')
-      }
-
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          session_id: session.id,
-          business_day_id: businessDay.id,
-          source: 'qr',
-          status: 'pending',
-          notes: null
-        })
-        .select()
-        .single()
-
-      if (orderError) throw orderError
-
-      // Create order items
-      const orderItems = cart.map(cartItem => ({
-        order_id: order.id,
+      // Prepare items for API
+      const items = cart.map(cartItem => ({
         menu_item_id: cartItem.menuItem.id,
         quantity: cartItem.quantity,
-        unit_price: cartItem.menuItem.price,
-        subtotal: cartItem.menuItem.price * cartItem.quantity,
-        notes: cartItem.notes
+        notes: cartItem.notes || null,
+        modifiers: cartItem.modifiers.map(mod => mod.modifier.id)
       }))
 
-      const { data: createdItems, error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems)
-        .select()
-
-      if (itemsError) throw itemsError
-
-      // Create order item modifiers
-      const allModifiers: any[] = []
-      cart.forEach((cartItem, cartIndex) => {
-        const orderItemId = createdItems[cartIndex].id
-        cartItem.modifiers.forEach(mod => {
-          allModifiers.push({
-            order_item_id: orderItemId,
-            modifier_id: mod.modifier.id,
-            quantity: mod.quantity,
-            price_adjustment: mod.modifier.price_adjustment
-          })
+      // Submit order via API route
+      const response = await fetch('/api/qr-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tableNumber,
+          items,
+          clientRequestId
         })
       })
 
-      if (allModifiers.length > 0) {
-        const { error: modError } = await supabase
-          .from('order_item_modifiers')
-          .insert(allModifiers)
+      const data = await response.json()
 
-        if (modError) throw modError
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit order')
       }
 
       // Success!

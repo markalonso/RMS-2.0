@@ -95,9 +95,235 @@ export const translations: Translations = {
     en: 'Admin Dashboard',
     ar: 'لوحة التحكم'
   },
-  'admin.description': {
+  'admin.dashboardDesc': {
     en: 'Manage your restaurant',
     ar: 'إدارة مطعمك'
+  },
+
+  // Admin Dashboard
+  'admin.menu': {
+    en: 'Menu Management',
+    ar: 'إدارة القائمة'
+  },
+  'admin.modifiers': {
+    en: 'Modifier Management',
+    ar: 'إدارة الإضافات'
+  },
+  'admin.inventory': {
+    en: 'Inventory Management',
+    ar: 'إدارة المخزون'
+  },
+  'admin.purchases': {
+    en: 'Purchases',
+    ar: 'المشتريات'
+  },
+  'admin.expenses': {
+    en: 'Expenses',
+    ar: 'المصروفات'
+  },
+  'admin.waste': {
+    en: 'Waste Logs',
+    ar: 'سجلات الهدر'
+  },
+  'admin.reports': {
+    en: 'Reports',
+    ar: 'التقارير'
+  },
+  'admin.categories': {
+    en: 'Categories',
+    ar: 'الفئات'
+  },
+  'admin.items': {
+    en: 'Menu Items',
+    ar: 'عناصر القائمة'
+  },
+  'admin.ingredients': {
+    en: 'Ingredients',
+    ar: 'المكونات'
+  },
+  'admin.recipes': {
+    en: 'Recipes',
+    ar: 'الوصفات'
+  },
+  'admin.addNew': {
+    en: 'Add New',
+    ar: 'إضافة جديد'
+  },
+  'admin.edit': {
+    en: 'Edit',
+    ar: 'تعديل'
+  },
+  'admin.delete': {
+    en: 'Delete',
+    ar: 'حذف'
+  },
+  'admin.save': {
+    en: 'Save',
+    ar: 'حفظ'
+  },
+  'admin.name': {
+    en: 'Name',
+    ar: 'الاسم'
+  },
+  'admin.description': {
+    en: 'Description',
+    ar: 'الوصف'
+  },
+  'admin.price': {
+    en: 'Price',
+    ar: 'السعر'
+  },
+  'admin.category': {
+    en: 'Category',
+    ar: 'الفئة'
+  },
+  'admin.available': {
+    en: 'Available',
+    ar: 'متاح'
+  },
+  'admin.unavailable': {
+    en: 'Unavailable',
+    ar: 'غير متاح'
+  },
+  'admin.active': {
+    en: 'Active',
+    ar: 'نشط'
+  },
+  'admin.inactive': {
+    en: 'Inactive',
+    ar: 'غير نشط'
+  },
+  'admin.displayOrder': {
+    en: 'Display Order',
+    ar: 'ترتيب العرض'
+  },
+  'admin.minSelection': {
+    en: 'Min Selection',
+    ar: 'الحد الأدنى'
+  },
+  'admin.maxSelection': {
+    en: 'Max Selection',
+    ar: 'الحد الأقصى'
+  },
+  'admin.required': {
+    en: 'Required',
+    ar: 'مطلوب'
+  },
+  'admin.priceAdjustment': {
+    en: 'Price Adjustment',
+    ar: 'تعديل السعر'
+  },
+  'admin.unit': {
+    en: 'Unit',
+    ar: 'الوحدة'
+  },
+  'admin.currentQuantity': {
+    en: 'Current Quantity',
+    ar: 'الكمية الحالية'
+  },
+  'admin.minQuantity': {
+    en: 'Min Quantity',
+    ar: 'الحد الأدنى'
+  },
+  'admin.unitCost': {
+    en: 'Unit Cost',
+    ar: 'تكلفة الوحدة'
+  },
+  'admin.supplier': {
+    en: 'Supplier',
+    ar: 'المورد'
+  },
+  'admin.invoiceNumber': {
+    en: 'Invoice Number',
+    ar: 'رقم الفاتورة'
+  },
+  'admin.invoiceDate': {
+    en: 'Invoice Date',
+    ar: 'تاريخ الفاتورة'
+  },
+  'admin.totalAmount': {
+    en: 'Total Amount',
+    ar: 'المبلغ الإجمالي'
+  },
+  'admin.paid': {
+    en: 'Paid',
+    ar: 'مدفوع'
+  },
+  'admin.unpaid': {
+    en: 'Unpaid',
+    ar: 'غير مدفوع'
+  },
+  'admin.expenseType': {
+    en: 'Expense Type',
+    ar: 'نوع المصروف'
+  },
+  'admin.operational': {
+    en: 'Operational',
+    ar: 'تشغيلي'
+  },
+  'admin.administrative': {
+    en: 'Administrative',
+    ar: 'إداري'
+  },
+  'admin.amount': {
+    en: 'Amount',
+    ar: 'المبلغ'
+  },
+  'admin.date': {
+    en: 'Date',
+    ar: 'التاريخ'
+  },
+  'admin.reason': {
+    en: 'Reason',
+    ar: 'السبب'
+  },
+  'admin.quantity': {
+    en: 'Quantity',
+    ar: 'الكمية'
+  },
+  'admin.cost': {
+    en: 'Cost',
+    ar: 'التكلفة'
+  },
+  'admin.businessDayReports': {
+    en: 'Business Day Reports',
+    ar: 'تقارير يوم العمل'
+  },
+  'admin.salesByType': {
+    en: 'Sales by Order Type',
+    ar: 'المبيعات حسب نوع الطلب'
+  },
+  'admin.taxCollected': {
+    en: 'Tax Collected',
+    ar: 'الضرائب المحصلة'
+  },
+  'admin.profitEstimate': {
+    en: 'Profit Estimate',
+    ar: 'تقدير الربح'
+  },
+  'admin.totalSales': {
+    en: 'Total Sales',
+    ar: 'إجمالي المبيعات'
+  },
+  'admin.cogs': {
+    en: 'Cost of Goods Sold',
+    ar: 'تكلفة البضائع المباعة'
+  },
+  'admin.grossProfit': {
+    en: 'Gross Profit',
+    ar: 'إجمالي الربح'
+  },
+  'admin.netProfit': {
+    en: 'Net Profit',
+    ar: 'صافي الربح'
+  },
+  'admin.lowStock': {
+    en: 'Low Stock Alert',
+    ar: 'تنبيه نقص المخزون'
+  },
+  'admin.reorderLevel': {
+    en: 'Reorder Level',
+    ar: 'مستوى إعادة الطلب'
   },
   
   // Table Page - QR Ordering
@@ -204,6 +430,204 @@ export const translations: Translations = {
   'table.unavailable': {
     en: 'Currently Unavailable',
     ar: 'غير متوفر حالياً'
+  },
+
+  // POS Features
+  'pos.tables': {
+    en: 'Tables',
+    ar: 'الطاولات'
+  },
+  'pos.openDay': {
+    en: 'Open Business Day',
+    ar: 'فتح يوم عمل'
+  },
+  'pos.closeDay': {
+    en: 'Close Business Day',
+    ar: 'إغلاق يوم عمل'
+  },
+  'pos.dayOpen': {
+    en: 'Day Open',
+    ar: 'اليوم مفتوح'
+  },
+  'pos.dayClosed': {
+    en: 'Day Closed',
+    ar: 'اليوم مغلق'
+  },
+  'pos.openingCash': {
+    en: 'Opening Cash',
+    ar: 'النقد الافتتاحي'
+  },
+  'pos.closingCash': {
+    en: 'Closing Cash',
+    ar: 'النقد الختامي'
+  },
+  'pos.dineIn': {
+    en: 'Dine-in',
+    ar: 'تناول في المطعم'
+  },
+  'pos.takeaway': {
+    en: 'Takeaway',
+    ar: 'طلب خارجي'
+  },
+  'pos.delivery': {
+    en: 'Delivery',
+    ar: 'توصيل'
+  },
+  'pos.available': {
+    en: 'Available',
+    ar: 'متاح'
+  },
+  'pos.occupied': {
+    en: 'Occupied',
+    ar: 'مشغول'
+  },
+  'pos.pendingOrders': {
+    en: 'Pending Orders',
+    ar: 'طلبات معلقة'
+  },
+  'pos.qrEnabled': {
+    en: 'QR Enabled',
+    ar: 'QR مفعّل'
+  },
+  'pos.qrDisabled': {
+    en: 'QR Disabled',
+    ar: 'QR معطل'
+  },
+  'pos.openSession': {
+    en: 'Open Session',
+    ar: 'فتح جلسة'
+  },
+  'pos.newTakeaway': {
+    en: 'New Takeaway',
+    ar: 'طلب خارجي جديد'
+  },
+  'pos.newDelivery': {
+    en: 'New Delivery',
+    ar: 'طلب توصيل جديد'
+  },
+  'pos.customerName': {
+    en: 'Customer Name',
+    ar: 'اسم العميل'
+  },
+  'pos.phone': {
+    en: 'Phone',
+    ar: 'الهاتف'
+  },
+  'pos.address': {
+    en: 'Address',
+    ar: 'العنوان'
+  },
+  'pos.deliveryFee': {
+    en: 'Delivery Fee',
+    ar: 'رسوم التوصيل'
+  },
+  'pos.guestCount': {
+    en: 'Guest Count',
+    ar: 'عدد الضيوف'
+  },
+  'pos.accept': {
+    en: 'Accept',
+    ar: 'قبول'
+  },
+  'pos.reject': {
+    en: 'Reject',
+    ar: 'رفض'
+  },
+  'pos.addItems': {
+    en: 'Add Items',
+    ar: 'إضافة عناصر'
+  },
+  'pos.discount': {
+    en: 'Discount',
+    ar: 'خصم'
+  },
+  'pos.discountPercent': {
+    en: 'Discount %',
+    ar: '% خصم'
+  },
+  'pos.discountAmount': {
+    en: 'Discount Amount',
+    ar: 'مبلغ الخصم'
+  },
+  'pos.subtotal': {
+    en: 'Subtotal',
+    ar: 'المجموع الفرعي'
+  },
+  'pos.tax': {
+    en: 'Tax',
+    ar: 'الضريبة'
+  },
+  'pos.total': {
+    en: 'Total',
+    ar: 'الإجمالي'
+  },
+  'pos.printKitchen': {
+    en: 'Print Kitchen Ticket',
+    ar: 'طباعة تذكرة المطبخ'
+  },
+  'pos.printReceipt': {
+    en: 'Print Receipt',
+    ar: 'طباعة إيصال'
+  },
+  'pos.mergeTables': {
+    en: 'Merge Tables',
+    ar: 'دمج الطاولات'
+  },
+  'pos.splitBill': {
+    en: 'Split Bill',
+    ar: 'تقسيم الفاتورة'
+  },
+  'pos.pay': {
+    en: 'Pay',
+    ar: 'دفع'
+  },
+  'pos.cash': {
+    en: 'Cash',
+    ar: 'نقداً'
+  },
+  'pos.card': {
+    en: 'Card',
+    ar: 'بطاقة'
+  },
+  'pos.bankTransfer': {
+    en: 'Bank Transfer',
+    ar: 'تحويل بنكي'
+  },
+  'pos.mobileWallet': {
+    en: 'Mobile Wallet',
+    ar: 'محفظة إلكترونية'
+  },
+  'pos.endOfDay': {
+    en: 'End of Day Report',
+    ar: 'تقرير نهاية اليوم'
+  },
+  'pos.viewOrders': {
+    en: 'View Orders',
+    ar: 'عرض الطلبات'
+  },
+  'pos.closeAndPay': {
+    en: 'Close & Pay',
+    ar: 'إغلاق ودفع'
+  },
+  'pos.noBusinessDay': {
+    en: 'No business day is open. Please open a business day to start.',
+    ar: 'لا يوجد يوم عمل مفتوح. يرجى فتح يوم عمل للبدء.'
+  },
+  'pos.paymentTooLow': {
+    en: 'Payment amount must be at least the bill total',
+    ar: 'يجب أن يكون مبلغ الدفع على الأقل إجمالي الفاتورة'
+  },
+  'pos.maxDiscount': {
+    en: 'Cashiers can only apply up to 15% discount',
+    ar: 'يمكن للصرافين تطبيق خصم حتى 15% فقط'
+  },
+  'pos.maxOwnerDiscount': {
+    en: 'Owner discount limit is 30%',
+    ar: 'حد خصم المالك هو 30%'
+  },
+  'pos.fillRequired': {
+    en: 'Please fill in all required fields',
+    ar: 'يرجى ملء جميع الحقول المطلوبة'
   },
 }
 
