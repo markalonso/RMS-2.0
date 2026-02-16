@@ -4,7 +4,8 @@ Restaurant Management System built with Next.js 14 App Router.
 
 ## Tech Stack
 
-- **Next.js 14** (App Router)
+- **Next.js 16** (App Router) - Latest stable version
+- **React 19** - Latest stable version
 - **TypeScript**
 - **Tailwind CSS**
 - **Supabase** (Auth + Postgres + Realtime)
