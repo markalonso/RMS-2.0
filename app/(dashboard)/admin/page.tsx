@@ -1276,30 +1276,768 @@ function RecipeForm({ menuItems, ingredients, language, onSave, onClose }: any) 
   )
 }
 
-function PurchaseManagement({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.purchases', language)}</h2>
-    <p className="text-gray-600">Purchase management interface coming next...</p>
-  </div>
+function PurchaseManagement({ language }: { language: any}) {
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
+
+  useEffect(() => {
+    loadInvoices()
+  }, [])
+
+  const loadInvoices = async () => {
+    const { data } = await supabase
+      .from('purchase_invoices')
+      .select('*, items:purchase_items(*, ingredient:inventory_ingredients(name))')
+      .order('invoice_date', { ascending: false })
+    setInvoices(data || [])
+  }
+
+  const saveInvoice = async (formData: any) => {
+    await supabase
+      .from('purchase_invoices')
+      .insert(formData)
+    loadInvoices()
+    setShowInvoiceForm(false)
+  }
+
+  const markPaid = async (id: string) => {
+    await supabase
+      .from('purchase_invoices')
+      .update({ is_paid: true, paid_at: new Date().toISOString() })
+      .eq('id', id)
+    loadInvoices()
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">{translate('admin.purchases', language)}</h2>
+        <button
+          onClick={() => setShowInvoiceForm(true)}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+        >
+          {translate('admin.addNew', language)}
+        </button>
+      </div>
+      <div className="space-y-3">
+        {invoices.map((invoice) => (
+          <div key={invoice.id} className="p-4 border rounded">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <div className="font-medium">{invoice.invoice_number}</div>
+                <div className="text-sm text-gray-600">{invoice.supplier_name}</div>
+                <div className="text-xs text-gray-500">{new Date(invoice.invoice_date).toLocaleDateString()}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">{formatPrice(invoice.total_amount)}</div>
+                <div className={`text-xs px-2 py-1 rounded ${invoice.is_paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {invoice.is_paid ? translate('admin.paid', language) : translate('admin.unpaid', language)}
+                </div>
+                {!invoice.is_paid && (
+                  <button
+                    onClick={() => markPaid(invoice.id)}
+                    className="mt-1 text-xs text-blue-600 hover:underline"
+                  >
+                    Mark Paid
+                  </button>
+                )}
+              </div>
+            </div>
+            {invoice.items && invoice.items.length > 0 && (
+              <div className="mt-2 text-sm text-gray-600 border-t pt-2">
+                {invoice.items.map((item: any, idx: number) => (
+                  <div key={idx}>
+                    {item.ingredient?.name}: {item.quantity} @ {formatPrice(item.unit_cost)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {showInvoiceForm && (
+        <PurchaseInvoiceForm
+          language={language}
+          onSave={saveInvoice}
+          onClose={() => setShowInvoiceForm(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function PurchaseInvoiceForm({ language, onSave, onClose }: any) {
+  const [ingredients, setIngredients] = useState<any[]>([])
+  const [formData, setFormData] = useState({
+    invoice_number: '',
+    supplier_name: '',
+    invoice_date: new Date().toISOString().split('T')[0],
+    total_amount: '0',
+    items: [] as any[]
+  })
+
+  useEffect(() => {
+    loadIngredients()
+  }, [])
+
+  const loadIngredients = async () => {
+    const { data } = await supabase
+      .from('inventory_ingredients')
+      .select('*')
+      .is('deleted_at', null)
+      .order('name')
+    setIngredients(data || [])
+  }
+
+  const addItem = () => {
+    setFormData({
+      ...formData,
+      items: [...formData.items, { ingredient_id: '', quantity: '1', unit_cost: '0' }]
+    })
+  }
+
+  const removeItem = (index: number) => {
+    setFormData({
+      ...formData,
+      items: formData.items.filter((_, i) => i !== index)
+    })
+  }
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...formData.items]
+    newItems[index] = { ...newItems[index], [field]: value }
+    setFormData({ ...formData, items: newItems })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const total = formData.items.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unit_cost)), 0)
+    
+    const { data: invoice } = await supabase
+      .from('purchase_invoices')
+      .insert({
+        invoice_number: formData.invoice_number,
+        supplier_name: formData.supplier_name,
+        invoice_date: formData.invoice_date,
+        total_amount: total,
+        is_paid: false
+      })
+      .select()
+      .single()
+
+    if (invoice) {
+      for (const item of formData.items) {
+        await supabase
+          .from('purchase_items')
+          .insert({
+            purchase_invoice_id: invoice.id,
+            ingredient_id: item.ingredient_id,
+            quantity: parseFloat(item.quantity),
+            unit_cost: parseFloat(item.unit_cost),
+            total_cost: parseFloat(item.quantity) * parseFloat(item.unit_cost)
+          })
+      }
+    }
+    
+    onSave(formData)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-lg font-bold mb-4">Purchase Invoice</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.invoiceNumber', language)}</label>
+              <input
+                type="text"
+                value={formData.invoice_number}
+                onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.invoiceDate', language)}</label>
+              <input
+                type="date"
+                value={formData.invoice_date}
+                onChange={(e) => setFormData({ ...formData, invoice_date: e.target.value })}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.supplier', language)}</label>
+            <input
+              type="text"
+              value={formData.supplier_name}
+              onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium">Items</label>
+              <button type="button" onClick={addItem} className="text-sm text-blue-600 hover:underline">
+                + Add Item
+              </button>
+            </div>
+            {formData.items.map((item, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <select
+                  value={item.ingredient_id}
+                  onChange={(e) => updateItem(idx, 'ingredient_id', e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded text-sm"
+                  required
+                >
+                  <option value="">Select...</option>
+                  {ingredients.map(ing => (
+                    <option key={ing.id} value={ing.id}>{ing.name}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder="Qty"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                  className="w-20 px-3 py-2 border rounded text-sm"
+                  required
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Cost"
+                  value={item.unit_cost}
+                  onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)}
+                  className="w-24 px-3 py-2 border rounded text-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(idx)}
+                  className="px-2 text-red-600 hover:text-red-800"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2 pt-4 border-t">
+            <button type="submit" className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 function ExpenseManagement({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.expenses', language)}</h2>
-    <p className="text-gray-600">Expense management interface coming next...</p>
-  </div>
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [showExpenseForm, setShowExpenseForm] = useState(false)
+
+  useEffect(() => {
+    loadExpenses()
+  }, [])
+
+  const loadExpenses = async () => {
+    const { data } = await supabase
+      .from('expenses')
+      .select('*')
+      .order('expense_date', { ascending: false })
+    setExpenses(data || [])
+  }
+
+  const saveExpense = async (formData: any) => {
+    await supabase
+      .from('expenses')
+      .insert(formData)
+    loadExpenses()
+    setShowExpenseForm(false)
+  }
+
+  const deleteExpense = async (id: string) => {
+    if (confirm('Delete this expense?')) {
+      await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id)
+      loadExpenses()
+    }
+  }
+
+  const totalByType = (type: string) => {
+    return expenses
+      .filter(e => e.expense_type === type)
+      .reduce((sum, e) => sum + e.amount, 0)
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">{translate('admin.expenses', language)}</h2>
+        <button
+          onClick={() => setShowExpenseForm(true)}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+        >
+          {translate('admin.addNew', language)}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded">
+        <div>
+          <div className="text-sm text-gray-600">{translate('admin.operational', language)}</div>
+          <div className="text-xl font-bold">{formatPrice(totalByType('operational'))}</div>
+        </div>
+        <div>
+          <div className="text-sm text-gray-600">{translate('admin.administrative', language)}</div>
+          <div className="text-xl font-bold">{formatPrice(totalByType('admin'))}</div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {expenses.map((expense) => (
+          <div key={expense.id} className="p-3 border rounded hover:bg-gray-50">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="font-medium">{expense.category}</div>
+                <div className="text-sm text-gray-600">{expense.description}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(expense.expense_date).toLocaleDateString()} | {expense.payment_method}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">{formatPrice(expense.amount)}</div>
+                <div className="text-xs text-gray-600">{expense.expense_type}</div>
+                <button
+                  onClick={() => deleteExpense(expense.id)}
+                  className="mt-1 text-xs text-red-600 hover:underline"
+                >
+                  {translate('admin.delete', language)}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showExpenseForm && (
+        <ExpenseForm
+          language={language}
+          onSave={saveExpense}
+          onClose={() => setShowExpenseForm(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ExpenseForm({ language, onSave, onClose }: any) {
+  const [formData, setFormData] = useState({
+    expense_type: 'operational',
+    category: '',
+    description: '',
+    amount: '',
+    payment_method: 'cash',
+    expense_date: new Date().toISOString().split('T')[0]
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Expense</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave({ ...formData, amount: parseFloat(formData.amount) }) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.expenseType', language)}</label>
+            <select
+              value={formData.expense_type}
+              onChange={(e) => setFormData({ ...formData, expense_type: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="operational">{translate('admin.operational', language)}</option>
+              <option value="admin">{translate('admin.administrative', language)}</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.category', language)}</label>
+            <input
+              type="text"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.description', language)}</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              rows={2}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.amount', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Method</label>
+              <select
+                value={formData.payment_method}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
+                className="w-full px-3 py-2 border rounded"
+              >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.date', language)}</label>
+              <input
+                type="date"
+                value={formData.expense_date}
+                onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 function WasteManagement({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.waste', language)}</h2>
-    <p className="text-gray-600">Waste log interface coming next...</p>
-  </div>
+  const [wasteLogs, setWasteLogs] = useState<any[]>([])
+  const [showWasteForm, setShowWasteForm] = useState(false)
+
+  useEffect(() => {
+    loadWasteLogs()
+  }, [])
+
+  const loadWasteLogs = async () => {
+    const { data } = await supabase
+      .from('waste_logs')
+      .select('*, ingredient:inventory_ingredients(name, unit)')
+      .order('created_at', { ascending: false })
+    setWasteLogs(data || [])
+  }
+
+  const saveWaste = async (formData: any) => {
+    await supabase
+      .from('waste_logs')
+      .insert(formData)
+    loadWasteLogs()
+    setShowWasteForm(false)
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">{translate('admin.waste', language)}</h2>
+        <button
+          onClick={() => setShowWasteForm(true)}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+        >
+          {translate('admin.addNew', language)}
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {wasteLogs.map((log) => (
+          <div key={log.id} className="p-3 border rounded hover:bg-gray-50">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="font-medium">{log.ingredient?.name}</div>
+                <div className="text-sm text-gray-600">{log.reason}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(log.created_at).toLocaleString()}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">{log.quantity} {log.ingredient?.unit}</div>
+                <div className="text-sm text-gray-600">{formatPrice(log.cost)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showWasteForm && (
+        <WasteForm
+          language={language}
+          onSave={saveWaste}
+          onClose={() => setShowWasteForm(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function WasteForm({ language, onSave, onClose }: any) {
+  const [ingredients, setIngredients] = useState<any[]>([])
+  const [formData, setFormData] = useState({
+    ingredient_id: '',
+    quantity: '',
+    reason: '',
+    cost: '0'
+  })
+
+  useEffect(() => {
+    loadIngredients()
+  }, [])
+
+  const loadIngredients = async () => {
+    const { data } = await supabase
+      .from('inventory_ingredients')
+      .select('*')
+      .is('deleted_at', null)
+      .order('name')
+    setIngredients(data || [])
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Waste Log</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave({ ...formData, quantity: parseFloat(formData.quantity), cost: parseFloat(formData.cost) }) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Ingredient</label>
+            <select
+              value={formData.ingredient_id}
+              onChange={(e) => setFormData({ ...formData, ingredient_id: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="">Select...</option>
+              {ingredients.map(ing => (
+                <option key={ing.id} value={ing.id}>{ing.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.quantity', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.reason', language)}</label>
+            <textarea
+              value={formData.reason}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              rows={2}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.cost', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.cost}
+              onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 function ReportsSection({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.reports', language)}</h2>
-    <p className="text-gray-600">Reports interface coming next...</p>
-  </div>
+  const [reportData, setReportData] = useState<any>(null)
+  const [dateRange, setDateRange] = useState({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
+
+  useEffect(() => {
+    loadReportData()
+  }, [dateRange])
+
+  const loadReportData = async () => {
+    // Business day reports
+    const { data: businessDays } = await supabase
+      .from('business_days')
+      .select('*')
+      .gte('opened_at', dateRange.start)
+      .lte('opened_at', dateRange.end)
+
+    // Sales by order type
+    const { data: sessions } = await supabase
+      .from('sessions')
+      .select('order_type, bills(*)')
+      .gte('opened_at', dateRange.start)
+      .lte('opened_at', dateRange.end)
+
+    // Tax collected
+    const { data: bills } = await supabase
+      .from('bills')
+      .select('*')
+      .eq('is_paid', true)
+      .gte('created_at', dateRange.start)
+      .lte('created_at', dateRange.end)
+
+    // Expenses
+    const { data: expenses } = await supabase
+      .from('expenses')
+      .select('*')
+      .gte('expense_date', dateRange.start)
+      .lte('expense_date', dateRange.end)
+
+    const totalSales = bills?.reduce((sum, b) => sum + b.total, 0) || 0
+    const totalTax = bills?.reduce((sum, b) => sum + b.tax_amount, 0) || 0
+    const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0
+
+    // Sales by type
+    const salesByType = {
+      dine_in: bills?.filter(b => {
+        const session = sessions?.find(s => s.bills?.some((sb: any) => sb.id === b.id))
+        return session?.order_type === 'dine_in'
+      }).reduce((sum, b) => sum + b.total, 0) || 0,
+      takeaway: bills?.filter(b => {
+        const session = sessions?.find(s => s.bills?.some((sb: any) => sb.id === b.id))
+        return session?.order_type === 'takeaway'
+      }).reduce((sum, b) => sum + b.total, 0) || 0,
+      delivery: bills?.filter(b => {
+        const session = sessions?.find(s => s.bills?.some((sb: any) => sb.id === b.id))
+        return session?.order_type === 'delivery'
+      }).reduce((sum, b) => sum + b.total, 0) || 0
+    }
+
+    setReportData({
+      businessDaysCount: businessDays?.length || 0,
+      totalSales,
+      totalTax,
+      totalExpenses,
+      grossProfit: totalSales - totalExpenses,
+      salesByType
+    })
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-lg font-semibold mb-4">{translate('admin.reports', language)}</h2>
+
+      <div className="mb-6 flex gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Start Date</label>
+          <input
+            type="date"
+            value={dateRange.start}
+            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">End Date</label>
+          <input
+            type="date"
+            value={dateRange.end}
+            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+      </div>
+
+      {reportData && (
+        <div className="space-y-6">
+          {/* Business Days */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="font-semibold mb-2">{translate('admin.businessDayReports', language)}</h3>
+            <div className="text-2xl font-bold">{reportData.businessDaysCount} Days</div>
+          </div>
+
+          {/* Sales by Type */}
+          <div className="bg-green-50 rounded-lg p-4">
+            <h3 className="font-semibold mb-3">{translate('admin.salesByType', language)}</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="text-sm text-gray-600">Dine-in</div>
+                <div className="text-xl font-bold">{formatPrice(reportData.salesByType.dine_in)}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-600">Takeaway</div>
+                <div className="text-xl font-bold">{formatPrice(reportData.salesByType.takeaway)}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-600">Delivery</div>
+                <div className="text-xl font-bold">{formatPrice(reportData.salesByType.delivery)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tax & Profit */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">{translate('admin.taxCollected', language)}</h3>
+              <div className="text-2xl font-bold">{formatPrice(reportData.totalTax)}</div>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">{translate('admin.profitEstimate', language)}</h3>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>{translate('admin.totalSales', language)}:</span>
+                  <span>{formatPrice(reportData.totalSales)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>{translate('admin.expenses', language)}:</span>
+                  <span className="text-red-600">-{formatPrice(reportData.totalExpenses)}</span>
+                </div>
+                <div className="flex justify-between font-bold border-t pt-1">
+                  <span>{translate('admin.grossProfit', language)}:</span>
+                  <span>{formatPrice(reportData.grossProfit)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
