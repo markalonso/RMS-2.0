@@ -170,57 +170,8 @@ export default function OrderManagement({
     loadOrders()
     onUpdate()
     
-    // Open print window for kitchen ticket
-    const printWindow = window.open('', '_blank')
-    if (printWindow) {
-      const order = orders.find(o => o.id === orderId)
-      printWindow.document.write(generateKitchenTicket(order!))
-      printWindow.document.close()
-      printWindow.print()
-    }
-  }
-
-  const generateKitchenTicket = (order: Order) => {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Kitchen Ticket - ${order.order_number}</title>
-        <style>
-          body { font-family: monospace; padding: 20px; }
-          h1 { font-size: 24px; margin-bottom: 10px; }
-          .info { margin-bottom: 20px; }
-          .items { margin-top: 20px; }
-          .item { margin: 10px 0; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
-          .item-name { font-weight: bold; font-size: 18px; }
-          .item-qty { margin-left: 20px; }
-          .notes { margin-left: 20px; font-style: italic; color: #666; }
-          @media print {
-            body { padding: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>KITCHEN TICKET</h1>
-        <div class="info">
-          <div><strong>Order:</strong> ${order.order_number}</div>
-          <div><strong>Table:</strong> ${session.table_id || 'N/A'}</div>
-          <div><strong>Type:</strong> ${session.order_type}</div>
-          <div><strong>Time:</strong> ${new Date().toLocaleString()}</div>
-        </div>
-        <hr />
-        <div class="items">
-          ${order.order_items?.map(item => `
-            <div class="item">
-              <div class="item-name">${item.menu_item?.name || 'Item'}</div>
-              <div class="item-qty">Qty: ${item.quantity}</div>
-              ${item.notes ? `<div class="notes">Notes: ${item.notes}</div>` : ''}
-            </div>
-          `).join('') || ''}
-        </div>
-      </body>
-      </html>
-    `
+    // Open print page for kitchen ticket
+    window.open(`/print/kitchen/${orderId}`, '_blank')
   }
 
   const createOrUpdateBill = async () => {
@@ -238,6 +189,10 @@ export default function OrderManagement({
     // Check discount limits
     if (currentUser.role === 'cashier' && discountPercent && parseFloat(discountPercent) > 15) {
       alert(translate('pos.maxDiscount', language))
+      return
+    }
+    if (currentUser.role === 'owner' && discountPercent && parseFloat(discountPercent) > 30) {
+      alert('Owner discount limit is 30%')
       return
     }
 
@@ -323,95 +278,10 @@ export default function OrderManagement({
       .eq('id', session.id)
 
     // Print receipt
-    const printWindow = window.open('', '_blank')
-    if (printWindow) {
-      printWindow.document.write(generateReceipt())
-      printWindow.document.close()
-      printWindow.print()
-    }
+    window.open(`/print/receipt/${bill.id}`, '_blank')
 
     onUpdate()
     onClose()
-  }
-
-  const generateReceipt = () => {
-    if (!bill) return ''
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt - ${bill.bill_number}</title>
-        <style>
-          body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-          h1 { text-align: center; font-size: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .line { border-top: 1px dashed #000; margin: 10px 0; }
-          .row { display: flex; justify-content: space-between; margin: 5px 0; }
-          .total { font-weight: bold; font-size: 18px; }
-          .footer { text-align: center; margin-top: 20px; }
-          @media print {
-            body { padding: 10px; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>RECEIPT</h1>
-          <div>${bill.bill_number}</div>
-          <div>${new Date().toLocaleString()}</div>
-        </div>
-        <div class="line"></div>
-        ${orders.filter(o => o.status === 'paid').map(order => 
-          order.order_items?.map(item => `
-            <div class="row">
-              <span>${item.quantity}x ${item.menu_item?.name}</span>
-              <span>${formatPrice(item.subtotal)}</span>
-            </div>
-          `).join('') || ''
-        ).join('')}
-        <div class="line"></div>
-        <div class="row">
-          <span>Subtotal:</span>
-          <span>${formatPrice(bill.subtotal)}</span>
-        </div>
-        ${bill.discount_amount > 0 ? `
-          <div class="row">
-            <span>Discount:</span>
-            <span>-${formatPrice(bill.discount_amount)}</span>
-          </div>
-        ` : ''}
-        ${bill.tax_amount > 0 ? `
-          <div class="row">
-            <span>Tax (${bill.tax_percentage}%):</span>
-            <span>${formatPrice(bill.tax_amount)}</span>
-          </div>
-        ` : ''}
-        ${bill.delivery_fee > 0 ? `
-          <div class="row">
-            <span>Delivery Fee:</span>
-            <span>${formatPrice(bill.delivery_fee)}</span>
-          </div>
-        ` : ''}
-        <div class="line"></div>
-        <div class="row total">
-          <span>TOTAL:</span>
-          <span>${formatPrice(bill.total)}</span>
-        </div>
-        <div class="row">
-          <span>Paid:</span>
-          <span>${formatPrice(bill.paid_amount || 0)}</span>
-        </div>
-        <div class="row">
-          <span>Change:</span>
-          <span>${formatPrice(bill.change_amount || 0)}</span>
-        </div>
-        <div class="footer">
-          <p>Thank you for your visit!</p>
-        </div>
-      </body>
-      </html>
-    `
   }
 
   const calculateBillPreview = () => {
