@@ -95,9 +95,235 @@ export const translations: Translations = {
     en: 'Admin Dashboard',
     ar: 'لوحة التحكم'
   },
-  'admin.description': {
+  'admin.dashboardDesc': {
     en: 'Manage your restaurant',
     ar: 'إدارة مطعمك'
+  },
+
+  // Admin Dashboard
+  'admin.menu': {
+    en: 'Menu Management',
+    ar: 'إدارة القائمة'
+  },
+  'admin.modifiers': {
+    en: 'Modifier Management',
+    ar: 'إدارة الإضافات'
+  },
+  'admin.inventory': {
+    en: 'Inventory Management',
+    ar: 'إدارة المخزون'
+  },
+  'admin.purchases': {
+    en: 'Purchases',
+    ar: 'المشتريات'
+  },
+  'admin.expenses': {
+    en: 'Expenses',
+    ar: 'المصروفات'
+  },
+  'admin.waste': {
+    en: 'Waste Logs',
+    ar: 'سجلات الهدر'
+  },
+  'admin.reports': {
+    en: 'Reports',
+    ar: 'التقارير'
+  },
+  'admin.categories': {
+    en: 'Categories',
+    ar: 'الفئات'
+  },
+  'admin.items': {
+    en: 'Menu Items',
+    ar: 'عناصر القائمة'
+  },
+  'admin.ingredients': {
+    en: 'Ingredients',
+    ar: 'المكونات'
+  },
+  'admin.recipes': {
+    en: 'Recipes',
+    ar: 'الوصفات'
+  },
+  'admin.addNew': {
+    en: 'Add New',
+    ar: 'إضافة جديد'
+  },
+  'admin.edit': {
+    en: 'Edit',
+    ar: 'تعديل'
+  },
+  'admin.delete': {
+    en: 'Delete',
+    ar: 'حذف'
+  },
+  'admin.save': {
+    en: 'Save',
+    ar: 'حفظ'
+  },
+  'admin.name': {
+    en: 'Name',
+    ar: 'الاسم'
+  },
+  'admin.description': {
+    en: 'Description',
+    ar: 'الوصف'
+  },
+  'admin.price': {
+    en: 'Price',
+    ar: 'السعر'
+  },
+  'admin.category': {
+    en: 'Category',
+    ar: 'الفئة'
+  },
+  'admin.available': {
+    en: 'Available',
+    ar: 'متاح'
+  },
+  'admin.unavailable': {
+    en: 'Unavailable',
+    ar: 'غير متاح'
+  },
+  'admin.active': {
+    en: 'Active',
+    ar: 'نشط'
+  },
+  'admin.inactive': {
+    en: 'Inactive',
+    ar: 'غير نشط'
+  },
+  'admin.displayOrder': {
+    en: 'Display Order',
+    ar: 'ترتيب العرض'
+  },
+  'admin.minSelection': {
+    en: 'Min Selection',
+    ar: 'الحد الأدنى'
+  },
+  'admin.maxSelection': {
+    en: 'Max Selection',
+    ar: 'الحد الأقصى'
+  },
+  'admin.required': {
+    en: 'Required',
+    ar: 'مطلوب'
+  },
+  'admin.priceAdjustment': {
+    en: 'Price Adjustment',
+    ar: 'تعديل السعر'
+  },
+  'admin.unit': {
+    en: 'Unit',
+    ar: 'الوحدة'
+  },
+  'admin.currentQuantity': {
+    en: 'Current Quantity',
+    ar: 'الكمية الحالية'
+  },
+  'admin.minQuantity': {
+    en: 'Min Quantity',
+    ar: 'الحد الأدنى'
+  },
+  'admin.unitCost': {
+    en: 'Unit Cost',
+    ar: 'تكلفة الوحدة'
+  },
+  'admin.supplier': {
+    en: 'Supplier',
+    ar: 'المورد'
+  },
+  'admin.invoiceNumber': {
+    en: 'Invoice Number',
+    ar: 'رقم الفاتورة'
+  },
+  'admin.invoiceDate': {
+    en: 'Invoice Date',
+    ar: 'تاريخ الفاتورة'
+  },
+  'admin.totalAmount': {
+    en: 'Total Amount',
+    ar: 'المبلغ الإجمالي'
+  },
+  'admin.paid': {
+    en: 'Paid',
+    ar: 'مدفوع'
+  },
+  'admin.unpaid': {
+    en: 'Unpaid',
+    ar: 'غير مدفوع'
+  },
+  'admin.expenseType': {
+    en: 'Expense Type',
+    ar: 'نوع المصروف'
+  },
+  'admin.operational': {
+    en: 'Operational',
+    ar: 'تشغيلي'
+  },
+  'admin.administrative': {
+    en: 'Administrative',
+    ar: 'إداري'
+  },
+  'admin.amount': {
+    en: 'Amount',
+    ar: 'المبلغ'
+  },
+  'admin.date': {
+    en: 'Date',
+    ar: 'التاريخ'
+  },
+  'admin.reason': {
+    en: 'Reason',
+    ar: 'السبب'
+  },
+  'admin.quantity': {
+    en: 'Quantity',
+    ar: 'الكمية'
+  },
+  'admin.cost': {
+    en: 'Cost',
+    ar: 'التكلفة'
+  },
+  'admin.businessDayReports': {
+    en: 'Business Day Reports',
+    ar: 'تقارير يوم العمل'
+  },
+  'admin.salesByType': {
+    en: 'Sales by Order Type',
+    ar: 'المبيعات حسب نوع الطلب'
+  },
+  'admin.taxCollected': {
+    en: 'Tax Collected',
+    ar: 'الضرائب المحصلة'
+  },
+  'admin.profitEstimate': {
+    en: 'Profit Estimate',
+    ar: 'تقدير الربح'
+  },
+  'admin.totalSales': {
+    en: 'Total Sales',
+    ar: 'إجمالي المبيعات'
+  },
+  'admin.cogs': {
+    en: 'Cost of Goods Sold',
+    ar: 'تكلفة البضائع المباعة'
+  },
+  'admin.grossProfit': {
+    en: 'Gross Profit',
+    ar: 'إجمالي الربح'
+  },
+  'admin.netProfit': {
+    en: 'Net Profit',
+    ar: 'صافي الربح'
+  },
+  'admin.lowStock': {
+    en: 'Low Stock Alert',
+    ar: 'تنبيه نقص المخزون'
+  },
+  'admin.reorderLevel': {
+    en: 'Reorder Level',
+    ar: 'مستوى إعادة الطلب'
   },
   
   // Table Page - QR Ordering
