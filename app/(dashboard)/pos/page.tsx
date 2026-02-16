@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 import { translate } from '@/lib/i18n'
 import { supabase } from '@/lib/supabaseClient'
 import { Table, Session, BusinessDay, Profile } from '@/types'
 import { formatPrice } from '@/utils/helpers'
+import { useAuthGuard } from '@/utils/useAuthGuard'
 import OrderManagement from '@/components/OrderManagement'
 import EndOfDayReport from '@/components/EndOfDayReport'
 
@@ -15,7 +17,9 @@ interface TableWithSession extends Table {
 }
 
 export default function POSPage() {
+  const router = useRouter()
   const { language } = useLanguage()
+  const { session, profile, loading: authLoading, error: authError } = useAuthGuard()
   const [businessDay, setBusinessDay] = useState<BusinessDay | null>(null)
   const [tables, setTables] = useState<TableWithSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,7 +32,6 @@ export default function POSPage() {
   const [showPendingOrders, setShowPendingOrders] = useState(false)
   const [showOrderManagement, setShowOrderManagement] = useState(false)
   const [showEndOfDayReport, setShowEndOfDayReport] = useState(false)
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
   const [pendingOrders, setPendingOrders] = useState<any[]>([])
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
 
@@ -41,16 +44,13 @@ export default function POSPage() {
   const [deliveryFee, setDeliveryFee] = useState('5.00')
   const [guestCount, setGuestCount] = useState('2')
 
-  // Load current user
+  // Load business day and tables when auth is ready
   useEffect(() => {
-    loadCurrentUser()
-  }, [])
-
-  // Load business day and tables
-  useEffect(() => {
-    loadBusinessDay()
-    loadTables()
-  }, [])
+    if (!authLoading && profile) {
+      loadBusinessDay()
+      loadTables()
+    }
+  }, [authLoading, profile])
 
   // Auto-refresh tables every 10 seconds
   useEffect(() => {
@@ -62,18 +62,6 @@ export default function POSPage() {
     }, 10000)
     return () => clearInterval(interval)
   }, [showPendingOrders])
-
-  const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      setCurrentUser(profile)
-    }
-  }
 
   const loadBusinessDay = async () => {
     const { data } = await supabase
@@ -155,13 +143,13 @@ export default function POSPage() {
   }
 
   const openBusinessDay = async () => {
-    if (!currentUser) return
+    if (!profile || !session) return
 
     const { data } = await supabase
       .from('business_days')
       .insert({
         status: 'open',
-        opened_by: currentUser.id,
+        opened_by: session.user.id,
         opening_cash: parseFloat(openingCash)
       })
       .select()
@@ -175,7 +163,7 @@ export default function POSPage() {
   }
 
   const closeBusinessDay = async () => {
-    if (!businessDay || !currentUser) return
+    if (!businessDay || !profile || !session) return
 
     const closingAmount = parseFloat(closingCash)
     const expectedAmount = businessDay.opening_cash
@@ -185,7 +173,7 @@ export default function POSPage() {
       .update({
         status: 'closed',
         closed_at: new Date().toISOString(),
-        closed_by: currentUser.id,
+        closed_by: session.user.id,
         closing_cash: closingAmount,
         expected_cash: expectedAmount,
         cash_difference: closingAmount - expectedAmount
@@ -202,7 +190,7 @@ export default function POSPage() {
   }
 
   const openDineInSession = async (table: TableWithSession) => {
-    if (!businessDay || !currentUser) return
+    if (!businessDay || !profile || !session) return
 
     const { data } = await supabase
       .from('sessions')
@@ -212,7 +200,7 @@ export default function POSPage() {
         order_type: 'dine_in',
         status: 'active',
         guest_count: parseInt(guestCount),
-        created_by: currentUser.id
+        created_by: session.user.id
       })
       .select()
       .single()
@@ -225,7 +213,7 @@ export default function POSPage() {
   }
 
   const openTakeawaySession = async () => {
-    if (!businessDay || !currentUser) return
+    if (!businessDay || !profile || !session) return
 
     const { data } = await supabase
       .from('sessions')
@@ -235,7 +223,7 @@ export default function POSPage() {
         status: 'active',
         customer_name: customerName || null,
         customer_phone: customerPhone || null,
-        created_by: currentUser.id
+        created_by: session.user.id
       })
       .select()
       .single()
@@ -250,7 +238,7 @@ export default function POSPage() {
   }
 
   const openDeliverySession = async () => {
-    if (!businessDay || !currentUser) return
+    if (!businessDay || !profile || !session) return
 
     // Validate required fields
     if (!customerName || !customerPhone || !customerAddress) {
@@ -266,7 +254,7 @@ export default function POSPage() {
         status: 'active',
         customer_name: customerName,
         customer_phone: customerPhone,
-        created_by: currentUser.id
+        created_by: session.user.id
       })
       .select()
       .single()
@@ -292,13 +280,13 @@ export default function POSPage() {
   }
 
   const acceptOrder = async (orderId: string) => {
-    if (!currentUser) return
+    if (!profile || !session) return
 
     await supabase
       .from('orders')
       .update({
         status: 'accepted',
-        accepted_by: currentUser.id,
+        accepted_by: session.user.id,
         accepted_at: new Date().toISOString()
       })
       .eq('id', orderId)
@@ -308,19 +296,51 @@ export default function POSPage() {
   }
 
   const rejectOrder = async (orderId: string) => {
-    if (!currentUser) return
+    if (!profile || !session) return
 
     await supabase
       .from('orders')
       .update({
         status: 'rejected',
-        rejected_by: currentUser.id,
+        rejected_by: session.user.id,
         rejected_at: new Date().toISOString()
       })
       .eq('id', orderId)
 
     loadPendingOrders()
     loadTables()
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.replace('/login')
+  }
+
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show error if auth failed
+  if (authError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg max-w-md">
+          <h2 className="text-lg font-bold mb-2">Access Denied</h2>
+          <p className="mb-4">{authError}</p>
+          <button
+            onClick={() => router.replace('/login')}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
@@ -378,6 +398,12 @@ export default function POSPage() {
                   {translate('pos.openDay', language)}
                 </button>
               )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -772,7 +798,7 @@ export default function POSPage() {
       {showOrderManagement && selectedSession && (
         <OrderManagement
           session={selectedSession}
-          currentUser={currentUser}
+          currentUser={profile}
           language={language}
           onClose={() => {
             setShowOrderManagement(false)

@@ -1,56 +1,59 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 import { translate } from '@/lib/i18n'
 import { supabase } from '@/lib/supabaseClient'
 import { formatPrice } from '@/utils/helpers'
+import { useAuthGuard } from '@/utils/useAuthGuard'
 import Link from 'next/link'
 
 type TabType = 'menu' | 'modifiers' | 'inventory' | 'purchases' | 'expenses' | 'waste' | 'reports'
 
 export default function AdminPage() {
+  const router = useRouter()
   const { language } = useLanguage()
+  const { session, profile, loading: authLoading, error: authError } = useAuthGuard('owner')
   const [activeTab, setActiveTab] = useState<TabType>('menu')
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadCurrentUser()
-  }, [])
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.replace('/login')
+  }
 
-  const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      setCurrentUser(profile)
-    }
-    setLoading(false)
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show error if auth failed
+  if (authError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg max-w-md">
+          <h2 className="text-lg font-bold mb-2">Access Denied</h2>
+          <p className="mb-4">{authError}</p>
+          <button
+            onClick={() => router.replace('/login')}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-xl">{translate('common.loading', language)}</div>
-      </div>
-    )
-  }
-
-  // Role protection - owner only
-  if (!currentUser || currentUser.role !== 'owner') {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-red-800 mb-2">Access Denied</h1>
-          <p className="text-red-600">This page is only accessible to restaurant owners.</p>
-          <Link href="/pos" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-            Go to POS
-          </Link>
-        </div>
       </div>
     )
   }
@@ -75,14 +78,22 @@ export default function AdminPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {translate('admin.title', language)}
               </h1>
-              <p className="text-sm text-gray-600">{currentUser?.full_name}</p>
+              <p className="text-sm text-gray-600">{profile?.full_name}</p>
             </div>
-            <Link 
-              href="/pos"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              {translate('nav.pos', language)}
-            </Link>
+            <div className="flex gap-2">
+              <Link 
+                href="/pos"
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                {translate('nav.pos', language)}
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
