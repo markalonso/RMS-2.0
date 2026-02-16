@@ -272,7 +272,7 @@ export default function OrderManagement({
     loadBill()
   }
 
-  const processPay ment = async () => {
+  const processPayment = async () => {
     if (!bill || !currentUser) return
 
     const paid = parseFloat(amountPaid)

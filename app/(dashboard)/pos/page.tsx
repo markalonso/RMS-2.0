@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { Table, Session, BusinessDay, Profile } from '@/types'
 import { formatPrice } from '@/utils/helpers'
 import OrderManagement from '@/components/OrderManagement'
+import EndOfDayReport from '@/components/EndOfDayReport'
 
 interface TableWithSession extends Table {
   activeSession?: Session
@@ -26,6 +27,7 @@ export default function POSPage() {
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false)
   const [showPendingOrders, setShowPendingOrders] = useState(false)
   const [showOrderManagement, setShowOrderManagement] = useState(false)
+  const [showEndOfDayReport, setShowEndOfDayReport] = useState(false)
   const [currentUser, setCurrentUser] = useState<Profile | null>(null)
   const [pendingOrders, setPendingOrders] = useState<any[]>([])
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
@@ -773,6 +775,15 @@ export default function POSPage() {
           onUpdate={() => {
             loadTables()
           }}
+        />
+      )}
+
+      {/* End of Day Report */}
+      {showEndOfDayReport && businessDay && (
+        <EndOfDayReport
+          businessDay={businessDay}
+          language={language}
+          onClose={() => setShowEndOfDayReport(false)}
         />
       )}
     </div>
