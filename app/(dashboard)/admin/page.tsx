@@ -16,7 +16,6 @@ export default function AdminPage() {
   const { language } = useLanguage()
   const { session, profile, loading: authLoading, error: authError } = useAuthGuard('owner')
   const [activeTab, setActiveTab] = useState<TabType>('menu')
-  const [loading, setLoading] = useState(true)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -46,14 +45,6 @@ export default function AdminPage() {
             Go to Login
           </button>
         </div>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">{translate('common.loading', language)}</div>
       </div>
     )
   }

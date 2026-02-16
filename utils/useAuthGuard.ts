@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Profile } from '@/types'
@@ -20,11 +20,7 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
@@ -66,17 +62,19 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
       }
 
       // Check role if required
-      if (requiredRole && profileData.role !== requiredRole && profileData.role !== 'owner') {
-        // Owner can access everything; otherwise check specific role
-        if (requiredRole === 'owner' && profileData.role !== 'owner') {
-          setError(`Access denied. Only owners can access this page.`)
-          setLoading(false)
-          return
-        }
-        if (requiredRole === 'cashier' && profileData.role !== 'cashier' && profileData.role !== 'owner') {
-          setError(`Access denied. Only cashiers and owners can access this page.`)
-          setLoading(false)
-          return
+      if (requiredRole) {
+        // Owner can access everything
+        if (profileData.role !== 'owner') {
+          if (requiredRole === 'owner') {
+            setError(`Access denied. Only owners can access this page.`)
+            setLoading(false)
+            return
+          }
+          if (requiredRole === 'cashier' && profileData.role !== 'cashier') {
+            setError(`Access denied. Only cashiers and owners can access this page.`)
+            setLoading(false)
+            return
+          }
         }
       }
 
@@ -87,7 +85,11 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
       setError('An unexpected error occurred')
       setLoading(false)
     }
-  }
+  }, [router, requiredRole])
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 
   return { session, profile, loading, error }
 }
