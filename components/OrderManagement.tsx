@@ -203,6 +203,8 @@ export default function OrderManagement({
       })
 
       // Create order
+      // Note: For manual POS orders, notes field is not user-editable, so it's safe to use for request ID.
+      // If in the future notes become user-editable, this should be changed to append or use a dedicated field.
       const orderPayload = {
         session_id: session.id,
         business_day_id: session.business_day_id,

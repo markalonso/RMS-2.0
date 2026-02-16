@@ -38,8 +38,8 @@ Enhanced `components/OrderManagement.tsx` to prevent double submissions:
 
 ### Option 1: Using Supabase CLI (Recommended)
 ```bash
-# Make sure you're in the project directory
-cd /home/runner/work/RMS-2.0/RMS-2.0
+# Navigate to your project directory
+cd /path/to/your/project
 
 # Apply the migration
 supabase db push
