@@ -6,6 +6,7 @@ import { translate } from '@/lib/i18n'
 import { supabase } from '@/lib/supabaseClient'
 import { Table, Session, BusinessDay, Profile } from '@/types'
 import { formatPrice } from '@/utils/helpers'
+import OrderManagement from '@/components/OrderManagement'
 
 interface TableWithSession extends Table {
   activeSession?: Session
@@ -24,8 +25,10 @@ export default function POSPage() {
   const [showTakeawayDialog, setShowTakeawayDialog] = useState(false)
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false)
   const [showPendingOrders, setShowPendingOrders] = useState(false)
+  const [showOrderManagement, setShowOrderManagement] = useState(false)
   const [currentUser, setCurrentUser] = useState<Profile | null>(null)
   const [pendingOrders, setPendingOrders] = useState<any[]>([])
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null)
 
   // Form states
   const [openingCash, setOpeningCash] = useState('500.00')
@@ -239,7 +242,8 @@ export default function POSPage() {
       setShowTakeawayDialog(false)
       setCustomerName('')
       setCustomerPhone('')
-      alert('Takeaway session created. Add items functionality coming next.')
+      setSelectedSession(data)
+      setShowOrderManagement(true)
     }
   }
 
@@ -265,7 +269,8 @@ export default function POSPage() {
       setCustomerPhone('')
       setCustomerAddress('')
       setDeliveryFee('5.00')
-      alert('Delivery session created. Add items functionality coming next.')
+      setSelectedSession(data)
+      setShowOrderManagement(true)
     }
   }
 
@@ -402,7 +407,10 @@ export default function POSPage() {
                 <div
                   key={table.id}
                   onClick={() => {
-                    if (!table.activeSession) {
+                    if (table.activeSession) {
+                      setSelectedSession(table.activeSession)
+                      setShowOrderManagement(true)
+                    } else {
                       setSelectedTable(table)
                       setShowSessionDialog(true)
                     }
@@ -750,6 +758,22 @@ export default function POSPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Order Management Dialog */}
+      {showOrderManagement && selectedSession && (
+        <OrderManagement
+          session={selectedSession}
+          currentUser={currentUser}
+          language={language}
+          onClose={() => {
+            setShowOrderManagement(false)
+            setSelectedSession(null)
+          }}
+          onUpdate={() => {
+            loadTables()
+          }}
+        />
       )}
     </div>
   )
