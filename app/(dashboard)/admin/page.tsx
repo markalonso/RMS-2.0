@@ -528,19 +528,752 @@ function ItemForm({ item, categories, language, onSave, onClose }: any) {
   )
 }
 
-// Placeholder components for other tabs (to be implemented)
+// Modifier Management Component
 function ModifierManagement({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.modifiers', language)}</h2>
-    <p className="text-gray-600">Modifier management interface coming next...</p>
-  </div>
+  const [modifierGroups, setModifierGroups] = useState<any[]>([])
+  const [modifiers, setModifiers] = useState<any[]>([])
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
+  const [showGroupForm, setShowGroupForm] = useState(false)
+  const [showModifierForm, setShowModifierForm] = useState(false)
+  const [editingGroup, setEditingGroup] = useState<any>(null)
+  const [editingModifier, setEditingModifier] = useState<any>(null)
+
+  useEffect(() => {
+    loadModifierGroups()
+    loadModifiers()
+  }, [])
+
+  const loadModifierGroups = async () => {
+    const { data } = await supabase
+      .from('modifier_groups')
+      .select('*')
+      .is('deleted_at', null)
+      .order('name')
+    setModifierGroups(data || [])
+  }
+
+  const loadModifiers = async () => {
+    const { data } = await supabase
+      .from('modifiers')
+      .select('*, modifier_group:modifier_groups(name)')
+      .is('deleted_at', null)
+      .order('name')
+    setModifiers(data || [])
+  }
+
+  const saveGroup = async (formData: any) => {
+    if (editingGroup) {
+      await supabase
+        .from('modifier_groups')
+        .update(formData)
+        .eq('id', editingGroup.id)
+    } else {
+      await supabase
+        .from('modifier_groups')
+        .insert(formData)
+    }
+    loadModifierGroups()
+    setShowGroupForm(false)
+    setEditingGroup(null)
+  }
+
+  const deleteGroup = async (id: string) => {
+    if (confirm('Delete this modifier group?')) {
+      await supabase
+        .from('modifier_groups')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+      loadModifierGroups()
+    }
+  }
+
+  const saveModifier = async (formData: any) => {
+    if (editingModifier) {
+      await supabase
+        .from('modifiers')
+        .update(formData)
+        .eq('id', editingModifier.id)
+    } else {
+      await supabase
+        .from('modifiers')
+        .insert(formData)
+    }
+    loadModifiers()
+    setShowModifierForm(false)
+    setEditingModifier(null)
+  }
+
+  const deleteModifier = async (id: string) => {
+    if (confirm('Delete this modifier?')) {
+      await supabase
+        .from('modifiers')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+      loadModifiers()
+    }
+  }
+
+  const filteredModifiers = selectedGroup
+    ? modifiers.filter(mod => mod.modifier_group_id === selectedGroup)
+    : modifiers
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Modifier Groups */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Modifier Groups</h2>
+          <button
+            onClick={() => {
+              setEditingGroup(null)
+              setShowGroupForm(true)
+            }}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          >
+            {translate('admin.addNew', language)}
+          </button>
+        </div>
+        <div className="space-y-2">
+          {modifierGroups.map((group) => (
+            <div
+              key={group.id}
+              className={`p-3 rounded border cursor-pointer ${
+                selectedGroup === group.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => setSelectedGroup(group.id === selectedGroup ? null : group.id)}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="font-medium">{group.name}</div>
+                  <div className="text-xs text-gray-600">
+                    Min: {group.min_selection}, Max: {group.max_selection}
+                    {group.is_required && ' (Required)'}
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditingGroup(group)
+                      setShowGroupForm(true)
+                    }}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    {translate('admin.edit', language)}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteGroup(group.id)
+                    }}
+                    className="text-red-600 text-sm hover:underline"
+                  >
+                    {translate('admin.delete', language)}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modifiers */}
+      <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Modifiers</h2>
+          <button
+            onClick={() => {
+              setEditingModifier(null)
+              setShowModifierForm(true)
+            }}
+            className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+          >
+            {translate('admin.addNew', language)}
+          </button>
+        </div>
+        <div className="space-y-3">
+          {filteredModifiers.map((modifier) => (
+            <div key={modifier.id} className="p-4 border rounded hover:bg-gray-50">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="font-medium">{modifier.name}</div>
+                  <div className="flex gap-4 mt-1 text-sm">
+                    <span>{formatPrice(modifier.price_adjustment)}</span>
+                    <span className="text-gray-600">{modifier.modifier_group?.name}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingModifier(modifier)
+                      setShowModifierForm(true)
+                    }}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    {translate('admin.edit', language)}
+                  </button>
+                  <button
+                    onClick={() => deleteModifier(modifier.id)}
+                    className="text-red-600 text-sm hover:underline"
+                  >
+                    {translate('admin.delete', language)}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Forms */}
+      {showGroupForm && (
+        <ModifierGroupForm
+          group={editingGroup}
+          language={language}
+          onSave={saveGroup}
+          onClose={() => {
+            setShowGroupForm(false)
+            setEditingGroup(null)
+          }}
+        />
+      )}
+      {showModifierForm && (
+        <ModifierForm
+          modifier={editingModifier}
+          groups={modifierGroups}
+          language={language}
+          onSave={saveModifier}
+          onClose={() => {
+            setShowModifierForm(false)
+            setEditingModifier(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function ModifierGroupForm({ group, language, onSave, onClose }: any) {
+  const [formData, setFormData] = useState({
+    name: group?.name || '',
+    min_selection: group?.min_selection || 0,
+    max_selection: group?.max_selection || 1,
+    is_required: group?.is_required ?? false,
+    is_active: group?.is_active ?? true
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Modifier Group</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(formData) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.name', language)}</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.minSelection', language)}</label>
+              <input
+                type="number"
+                value={formData.min_selection}
+                onChange={(e) => setFormData({ ...formData, min_selection: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.maxSelection', language)}</label>
+              <input
+                type="number"
+                value={formData.max_selection}
+                onChange={(e) => setFormData({ ...formData, max_selection: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.is_required}
+                onChange={(e) => setFormData({ ...formData, is_required: e.target.checked })}
+                className="mr-2"
+              />
+              <label className="text-sm">{translate('admin.required', language)}</label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.is_active}
+                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                className="mr-2"
+              />
+              <label className="text-sm">{translate('admin.active', language)}</label>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function ModifierForm({ modifier, groups, language, onSave, onClose }: any) {
+  const [formData, setFormData] = useState({
+    modifier_group_id: modifier?.modifier_group_id || '',
+    name: modifier?.name || '',
+    price_adjustment: modifier?.price_adjustment || '0.00',
+    is_active: modifier?.is_active ?? true
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Modifier</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave({ ...formData, price_adjustment: parseFloat(formData.price_adjustment as any) }) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Modifier Group</label>
+            <select
+              value={formData.modifier_group_id}
+              onChange={(e) => setFormData({ ...formData, modifier_group_id: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="">Select...</option>
+              {groups.map((g: any) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.name', language)}</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.priceAdjustment', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.price_adjustment}
+              onChange={(e) => setFormData({ ...formData, price_adjustment: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.is_active}
+              onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+              className="mr-2"
+            />
+            <label className="text-sm">{translate('admin.active', language)}</label>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 function InventoryManagement({ language }: { language: any }) {
-  return <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-semibold mb-4">{translate('admin.inventory', language)}</h2>
-    <p className="text-gray-600">Inventory management interface coming next...</p>
-  </div>
+  const [ingredients, setIngredients] = useState<any[]>([])
+  const [recipes, setRecipes] = useState<any[]>([])
+  const [menuItems, setMenuItems] = useState<any[]>([])
+  const [showIngredientForm, setShowIngredientForm] = useState(false)
+  const [showRecipeForm, setShowRecipeForm] = useState(false)
+  const [editingIngredient, setEditingIngredient] = useState<any>(null)
+  const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadIngredients()
+    loadRecipes()
+    loadMenuItems()
+  }, [])
+
+  const loadIngredients = async () => {
+    const { data } = await supabase
+      .from('inventory_ingredients')
+      .select('*')
+      .is('deleted_at', null)
+      .order('name')
+    setIngredients(data || [])
+  }
+
+  const loadRecipes = async () => {
+    const { data } = await supabase
+      .from('recipes')
+      .select('*, menu_item:menu_items(name), ingredient:inventory_ingredients(name, unit)')
+      .order('created_at')
+    setRecipes(data || [])
+  }
+
+  const loadMenuItems = async () => {
+    const { data } = await supabase
+      .from('menu_items')
+      .select('*')
+      .is('deleted_at', null)
+      .order('name')
+    setMenuItems(data || [])
+  }
+
+  const saveIngredient = async (formData: any) => {
+    if (editingIngredient) {
+      await supabase
+        .from('inventory_ingredients')
+        .update(formData)
+        .eq('id', editingIngredient.id)
+    } else {
+      await supabase
+        .from('inventory_ingredients')
+        .insert(formData)
+    }
+    loadIngredients()
+    setShowIngredientForm(false)
+    setEditingIngredient(null)
+  }
+
+  const deleteIngredient = async (id: string) => {
+    if (confirm('Delete this ingredient?')) {
+      await supabase
+        .from('inventory_ingredients')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+      loadIngredients()
+    }
+  }
+
+  const saveRecipe = async (formData: any) => {
+    await supabase
+      .from('recipes')
+      .insert(formData)
+    loadRecipes()
+    setShowRecipeForm(false)
+  }
+
+  const deleteRecipe = async (id: string) => {
+    if (confirm('Delete this recipe?')) {
+      await supabase
+        .from('recipes')
+        .delete()
+        .eq('id', id)
+      loadRecipes()
+    }
+  }
+
+  const lowStockIngredients = ingredients.filter(ing => ing.current_quantity <= ing.min_quantity)
+  const selectedRecipes = selectedMenuItem
+    ? recipes.filter(r => r.menu_item_id === selectedMenuItem)
+    : recipes
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Ingredients */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">{translate('admin.ingredients', language)}</h2>
+          <button
+            onClick={() => {
+              setEditingIngredient(null)
+              setShowIngredientForm(true)
+            }}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          >
+            {translate('admin.addNew', language)}
+          </button>
+        </div>
+
+        {lowStockIngredients.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+            <div className="text-sm font-medium text-red-800 mb-2">{translate('admin.lowStock', language)}</div>
+            {lowStockIngredients.map(ing => (
+              <div key={ing.id} className="text-sm text-red-600">
+                {ing.name}: {ing.current_quantity} {ing.unit} (min: {ing.min_quantity})
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {ingredients.map((ing) => (
+            <div key={ing.id} className="p-3 border rounded hover:bg-gray-50">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="font-medium">{ing.name}</div>
+                  <div className="text-sm text-gray-600">
+                    {ing.current_quantity} {ing.unit} | Min: {ing.min_quantity}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Cost: {formatPrice(ing.unit_cost)} per {ing.unit}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingIngredient(ing)
+                      setShowIngredientForm(true)
+                    }}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    {translate('admin.edit', language)}
+                  </button>
+                  <button
+                    onClick={() => deleteIngredient(ing.id)}
+                    className="text-red-600 text-sm hover:underline"
+                  >
+                    {translate('admin.delete', language)}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recipes */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">{translate('admin.recipes', language)}</h2>
+          <button
+            onClick={() => setShowRecipeForm(true)}
+            className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+          >
+            {translate('admin.addNew', language)}
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <select
+            value={selectedMenuItem || ''}
+            onChange={(e) => setSelectedMenuItem(e.target.value || null)}
+            className="w-full px-3 py-2 border rounded"
+          >
+            <option value="">All Menu Items</option>
+            {menuItems.map(item => (
+              <option key={item.id} value={item.id}>{item.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {selectedRecipes.map((recipe) => (
+            <div key={recipe.id} className="p-3 border rounded hover:bg-gray-50">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="font-medium">{recipe.menu_item?.name}</div>
+                  <div className="text-sm text-gray-600">
+                    {recipe.ingredient?.name}: {recipe.quantity} {recipe.ingredient?.unit}
+                  </div>
+                </div>
+                <button
+                  onClick={() => deleteRecipe(recipe.id)}
+                  className="text-red-600 text-sm hover:underline"
+                >
+                  {translate('admin.delete', language)}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Forms */}
+      {showIngredientForm && (
+        <IngredientForm
+          ingredient={editingIngredient}
+          language={language}
+          onSave={saveIngredient}
+          onClose={() => {
+            setShowIngredientForm(false)
+            setEditingIngredient(null)
+          }}
+        />
+      )}
+      {showRecipeForm && (
+        <RecipeForm
+          menuItems={menuItems}
+          ingredients={ingredients}
+          language={language}
+          onSave={saveRecipe}
+          onClose={() => setShowRecipeForm(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function IngredientForm({ ingredient, language, onSave, onClose }: any) {
+  const [formData, setFormData] = useState({
+    name: ingredient?.name || '',
+    unit: ingredient?.unit || 'kg',
+    current_quantity: ingredient?.current_quantity || 0,
+    min_quantity: ingredient?.min_quantity || 0,
+    unit_cost: ingredient?.unit_cost || '0.00'
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Ingredient</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave({ ...formData, unit_cost: parseFloat(formData.unit_cost as any) }) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.name', language)}</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.unit', language)}</label>
+            <select
+              value={formData.unit}
+              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="l">l</option>
+              <option value="ml">ml</option>
+              <option value="piece">piece</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.currentQuantity', language)}</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.current_quantity}
+                onChange={(e) => setFormData({ ...formData, current_quantity: parseFloat(e.target.value) })}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">{translate('admin.minQuantity', language)}</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.min_quantity}
+                onChange={(e) => setFormData({ ...formData, min_quantity: parseFloat(e.target.value) })}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.unitCost', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.unit_cost}
+              onChange={(e) => setFormData({ ...formData, unit_cost: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function RecipeForm({ menuItems, ingredients, language, onSave, onClose }: any) {
+  const [formData, setFormData] = useState({
+    menu_item_id: '',
+    ingredient_id: '',
+    quantity: '1'
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-4">Recipe</h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave({ ...formData, quantity: parseFloat(formData.quantity) }) }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Menu Item</label>
+            <select
+              value={formData.menu_item_id}
+              onChange={(e) => setFormData({ ...formData, menu_item_id: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="">Select...</option>
+              {menuItems.map((item: any) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ingredient</label>
+            <select
+              value={formData.ingredient_id}
+              onChange={(e) => setFormData({ ...formData, ingredient_id: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="">Select...</option>
+              {ingredients.map((ing: any) => (
+                <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{translate('admin.quantity', language)}</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+              {translate('admin.save', language)}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+              {translate('common.cancel', language)}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 function PurchaseManagement({ language }: { language: any }) {
