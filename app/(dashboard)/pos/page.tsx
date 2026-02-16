@@ -83,7 +83,7 @@ export default function POSPage() {
       .from('tables')
       .select('*')
       .eq('is_active', true)
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('table_number')
 
     if (!tablesData) return

@@ -84,7 +84,7 @@ export default function OrderManagement({
       .select('*')
       .eq('is_active', true)
       .eq('is_available', true)
-      .is('deleted_at', null)
+      .eq('is_deleted', false)
       .order('name')
 
     setMenuItems(data || [])

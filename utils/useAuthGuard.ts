@@ -42,11 +42,11 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
       // Load user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, role, full_name, is_active, is_deleted')
         .eq('id', currentSession.user.id)
         .eq('is_active', true)
-        .is('deleted_at', null)
-        .maybeSingle()
+        .eq('is_deleted', false)
+        .single()
 
       if (profileError) {
         console.error('Profile error:', profileError)
@@ -56,7 +56,7 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
       }
 
       if (!profileData) {
-        setError('Profile not found. Please create a profile row in Supabase with your user ID.')
+        setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
         setLoading(false)
         return
       }
