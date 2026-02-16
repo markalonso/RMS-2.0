@@ -621,6 +621,10 @@ export const translations: Translations = {
     en: 'Cashiers can only apply up to 15% discount',
     ar: 'يمكن للصرافين تطبيق خصم حتى 15% فقط'
   },
+  'pos.maxOwnerDiscount': {
+    en: 'Owner discount limit is 30%',
+    ar: 'حد خصم المالك هو 30%'
+  },
   'pos.fillRequired': {
     en: 'Please fill in all required fields',
     ar: 'يرجى ملء جميع الحقول المطلوبة'

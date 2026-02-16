@@ -192,7 +192,7 @@ export default function OrderManagement({
       return
     }
     if (currentUser.role === 'owner' && discountPercent && parseFloat(discountPercent) > 30) {
-      alert('Owner discount limit is 30%')
+      alert(translate('pos.maxOwnerDiscount', language) || 'Owner discount limit is 30%')
       return
     }
 

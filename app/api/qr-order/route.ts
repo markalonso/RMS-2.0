@@ -15,19 +15,25 @@ const supabaseAdmin = createClient(
 
 // In-memory rate limit store (in production, use Redis or database)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
-const requestIdStore = new Set<string>()
+const requestIdStore = new Map<string, number>() // Store timestamp with request ID
 
 // Clean up old entries every 5 minutes
 setInterval(() => {
   const now = Date.now()
+  const expiry = 5 * 60 * 1000 // 5 minutes
+  
+  // Clean up rate limits
   for (const [key, value] of rateLimitStore.entries()) {
     if (value.resetAt < now) {
       rateLimitStore.delete(key)
     }
   }
-  // Clean up request IDs older than 5 minutes
-  if (requestIdStore.size > 10000) {
-    requestIdStore.clear()
+  
+  // Clean up old request IDs
+  for (const [requestId, timestamp] of requestIdStore.entries()) {
+    if (timestamp < now - expiry) {
+      requestIdStore.delete(requestId)
+    }
   }
 }, 5 * 60 * 1000)
 
@@ -83,7 +89,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       }
-      requestIdStore.add(clientRequestId)
+      requestIdStore.set(clientRequestId, Date.now())
     }
 
     // Check rate limit
@@ -158,8 +164,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate order number
-    const orderNumber = `QR-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+    // Generate order number (UUID-like with timestamp and random component)
+    const timestamp = Date.now().toString(36).toUpperCase()
+    const random = Math.random().toString(36).substring(2, 9).toUpperCase()
+    const orderNumber = `QR-${timestamp}-${random}`
 
     // Create order
     const { data: order, error: orderError } = await supabaseAdmin
