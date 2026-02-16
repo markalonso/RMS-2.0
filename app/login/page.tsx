@@ -50,7 +50,13 @@ export default function LoginPage() {
           .single()
 
         if (profileError) {
-          setError('Error loading profile: ' + profileError.message)
+          // Check if it's a "not found" error (PGRST116)
+          if (profileError.code === 'PGRST116') {
+            setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
+          } else {
+            setError('Error loading profile: ' + profileError.message)
+          }
+          await supabase.auth.signOut()
           setLoading(false)
           return
         }

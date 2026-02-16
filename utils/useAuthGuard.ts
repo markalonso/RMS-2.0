@@ -50,7 +50,12 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
 
       if (profileError) {
         console.error('Profile error:', profileError)
-        setError('Failed to load profile')
+        // Check if it's a "not found" error (PGRST116)
+        if (profileError.code === 'PGRST116') {
+          setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
+        } else {
+          setError('Failed to load profile')
+        }
         setLoading(false)
         return
       }
