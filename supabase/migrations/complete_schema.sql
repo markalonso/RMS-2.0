@@ -2,6 +2,11 @@
 -- RESTAURANT RMS - SINGLE SCRIPT FOR SUPABASE SQL EDITOR
 -- Paste and run this entire script once in Supabase SQL Editor
 -- ============================================================================
+-- 
+-- IMPORTANT: After running this schema, also apply the migration:
+--   supabase/migrations/20260216_fix_order_number_race_condition.sql
+-- This migration fixes a race condition in order_number generation.
+-- ============================================================================
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
