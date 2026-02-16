@@ -60,12 +60,6 @@ export function useAuthGuard(requiredRole?: 'owner' | 'cashier'): AuthGuardResul
         return
       }
 
-      if (!profileData) {
-        setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
-        setLoading(false)
-        return
-      }
-
       // Check role if required
       if (requiredRole) {
         // Owner can access everything

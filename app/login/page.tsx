@@ -61,13 +61,6 @@ export default function LoginPage() {
           return
         }
 
-        if (!profile) {
-          setError('Profile not found in public.profiles for this user. Create it in Supabase SQL Editor.')
-          await supabase.auth.signOut()
-          setLoading(false)
-          return
-        }
-
         // Check if user has correct role
         if (profile.role !== 'owner' && profile.role !== 'cashier') {
           setError('Access denied. Only staff members (owner/cashier) can log in.')
