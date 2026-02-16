@@ -3,11 +3,14 @@
 import { useLanguage } from '@/lib/LanguageContext'
 import { translate } from '@/lib/i18n'
 import Link from 'next/link'
-import { use } from 'react'
 
-export default function TablePage({ params }: { params: Promise<{ tableNumber: string }> }) {
+interface PageProps {
+  params: { tableNumber: string }
+}
+
+export default function TablePage({ params }: PageProps) {
   const { language } = useLanguage()
-  const { tableNumber } = use(params)
+  const { tableNumber } = params
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
